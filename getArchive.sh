@@ -15,7 +15,7 @@ function getArchiveForDate {
 	curl -s "http://www.merproject.org/logs/%23sailfishos-porters/%23sailfishos-porters.$date.log.html" | grep 'class="nick"' | sed -e 's^<tr id="t\([^"]*\)"><[^>]*>\([^<]*\)</th><td[^>]*>\(.*\)^\1  \2    \3^; s^</td><[^<]*><[^<]*>[^>]*</a></td></tr>$^^' > $archive_dir/$date.txt
 }
 
-function getIndeees {
+function getIndexes {
 	curl -s "http://www.merproject.org/logs/%23sailfishos-porters/index.html" | grep '</li>' | sed -n '2,$p'| awk -F'>' '{print $3}' | awk '{print $1}' | sort -n
 }
 
