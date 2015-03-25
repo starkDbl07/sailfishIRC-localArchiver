@@ -27,9 +27,9 @@ function getIndexes {
 function updateIRC {
 	echo "Getting Date Indexes..."
 	getIndexes > $temp_dir/indexes
+	today=`tail -1 $temp_dir/indexes`
 
 	echo "Fetching Archive as text..."
-	count=0
 	while read index
 	do 
 		if [ ! -e "$archive_dir/$index.txt" ]
@@ -39,13 +39,8 @@ function updateIRC {
 			getArchiveForDate $index
 		fi
 	done < $temp_dir/indexes
-
-	if [ $count -eq 0 ]
-	then
-		echo ""
-		echo "No newer archive found."
-		echo ""
-	fi
+	echo -e "\t - $today"
+	getArchiveForDate $today
 }
 
 function usage {
