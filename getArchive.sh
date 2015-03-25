@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Author	:	starkDbl07
+# Date		:	2015-03-25
+# Purpose	:	Download and Generate plaintext of not-yet-downloaded sailfish-irc logs 'http://www.merproject.org/logs/%23sailfishos-porters'
+
 archive_dir="archive"
 temp_dir="temp"
 
@@ -11,7 +15,7 @@ function getArchiveForDate {
 	curl -s "http://www.merproject.org/logs/%23sailfishos-porters/%23sailfishos-porters.$date.log.html" | grep 'class="nick"' | sed -e 's^<tr id="t\([^"]*\)"><[^>]*>\([^<]*\)</th><td[^>]*>\(.*\)^\1  \2    \3^; s^</td><[^<]*><[^<]*>[^>]*</a></td></tr>$^^' > $archive_dir/$date.txt
 }
 
-function getIndexes {
+function getIndeees {
 	curl -s "http://www.merproject.org/logs/%23sailfishos-porters/index.html" | grep '</li>' | sed -n '2,$p'| awk -F'>' '{print $3}' | awk '{print $1}' | sort -n
 }
 
