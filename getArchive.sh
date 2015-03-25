@@ -2,7 +2,7 @@
 
 # Author	:	starkDbl07
 # Date		:	2015-03-25
-# Purpose	:	Download and Generate plaintext of not-yet-downloaded sailfish-irc logs 'http://www.merproject.org/logs/%23sailfishos-porters'
+# Purpose	:	Download plaintext of not-yet-downloaded sailfish-irc logs 'http://www.merproject.org/logs/%23sailfishos-porters'
 
 archive_dir="archive"
 temp_dir="temp"
@@ -12,7 +12,8 @@ mkdir -p "$archive_dir"
 
 function getArchiveForDate {
 	date="$1"
-	curl -s "http://www.merproject.org/logs/%23sailfishos-porters/%23sailfishos-porters.$date.log.html" | grep 'class="nick"' | sed -e 's^<tr id="t\([^"]*\)"><[^>]*>\([^<]*\)</th><td[^>]*>\(.*\)^\1  \2    \3^; s^</td><[^<]*><[^<]*>[^>]*</a></td></tr>$^^' > $archive_dir/$date.txt
+	#curl -s "http://www.merproject.org/logs/%23sailfishos-porters/%23sailfishos-porters.$date.log.html" | grep 'class="nick"' | sed -e 's^<tr id="t\([^"]*\)"><[^>]*>\([^<]*\)</th><td[^>]*>\(.*\)^\1  \2    \3^; s^</td><[^<]*><[^<]*>[^>]*</a></td></tr>$^^' > $archive_dir/$date.txt
+	curl -s "http://www.merproject.org/logs/%23sailfishos-porters/%23sailfishos-porters.$date.log" > $archive_dir/$date.txt
 }
 
 function getIndexes {
