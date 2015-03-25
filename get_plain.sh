@@ -4,6 +4,7 @@ archive_dir="archive"
 temp_dir="temp"
 
 mkdir -p "$temp_dir"
+mkdir -p "$archive_dir"
 
 function getArchiveForDate {
 	date="$1"
