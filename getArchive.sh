@@ -6,11 +6,9 @@
 
 archive_dir="archive"
 temp_dir="temp"
-pastebin_dir="pastebin"
 
 mkdir -p "$temp_dir"
 mkdir -p "$archive_dir"
-mkdir -p "$pastebin_dir"
 
 source includes/timestamps.func
 source includes/pasties.func
