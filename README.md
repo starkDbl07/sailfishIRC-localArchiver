@@ -1,2 +1,3 @@
 # sailfishIRC-log-2-Palintext
-Generate plain text files from sailfish IRC log site while tracking already downloaded files
+Maintain local PLAINTEXT archive of sailfishos-porters IRC log site 'http://www.merproject.org/logs/%23sailfishos-porters'
+Download and Generate plaintext of not-yet-downloaded IRC logs
