@@ -31,11 +31,14 @@ function downloadPastebinLink {
 	params=( `echo $1` )
 	file="$pastebin_dir/${params[0]}_${params[2]}"
 	link="${params[1]}"
-	#echo "$file"
+	#echo "$file:$link"
 	if [ ! -e "$file" ]
 	then
-		echo -e "- ${params[2]}"
 		curl -s -o "$file" "$link"
+		if [ -e "$file" ]
+		then
+			echo -e "- ${params[2]}"
+		fi
 	fi
 }
 
@@ -49,7 +52,7 @@ function genAllPastebinsLinks {
 function getAllPastebins {
 	: > $temp_dir/pastebins
 	echo "Extracting Pastebin Links from chat archive..."
-	genAllPastebinsLinks | sort | uniq > $temp_dir/pastebins
+	genAllPastebinsLinks | sort | uniq | grep -v '^$' > $temp_dir/pastebins
 	echo "Fetching pastebins..."
 	while read link
 	do
