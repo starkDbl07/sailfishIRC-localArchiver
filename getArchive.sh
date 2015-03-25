@@ -6,9 +6,11 @@
 
 archive_dir="archive"
 temp_dir="temp"
+pastebin_dir="pastebin"
 
 mkdir -p "$temp_dir"
 mkdir -p "$archive_dir"
+mkdir -p "$pastebin_dir"
 
 function getArchiveForDate {
 	date="$1"
@@ -20,7 +22,43 @@ function getIndexes {
 	curl -s "http://www.merproject.org/logs/%23sailfishos-porters/index.html" | grep '</li>' | sed -n '2,$p'| awk -F'>' '{print $3}' | awk '{print $1}' | sort -n
 }
 
-function main {
+
+function genPastebinLinks {
+	grep '<a href="http://pastebin' "$1" | sed 's~^\([^\ *]*\)\ .*<a href="\(http://pastebin.[^"]*\).*~\1 \2~g' | awk -F'/' '{print $1"//"$3"/raw.php?i="$4" "$4}'
+}
+
+function downloadPastebinLink {
+	params=( `echo $1` )
+	file="$pastebin_dir/${params[0]}_${params[2]}"
+	link="${params[1]}"
+	#echo "$file"
+	if [ ! -e "$file" ]
+	then
+		echo -e "- ${params[2]}"
+		curl -s -o "$file" "$link"
+	fi
+}
+
+function genAllPastebinsLinks {
+	for archive in `ls $archive_dir/`
+	do
+		genPastebinLinks "$archive_dir/$archive"
+	done 
+}
+
+function getAllPastebins {
+	: > $temp_dir/pastebins
+	echo "Extracting Pastebin Links from chat archive..."
+	genAllPastebinsLinks | sort | uniq > $temp_dir/pastebins
+	echo "Fetching pastebins..."
+	while read link
+	do
+		#echo "$link"
+		downloadPastebinLink "$link"
+	done < $temp_dir/pastebins
+}
+
+function updateIRC {
 	echo "Getting Date Indexes..."
 	getIndexes > $temp_dir/indexes
 
@@ -44,4 +82,22 @@ function main {
 	fi
 }
 
-main
+function usage {
+	echo "Usage: $0 irc/pastebin"
+	echo ""
+	echo "$0 irc"
+	echo -e "\t - Update local IRC archive"
+	echo "$0 pastebins"
+	echo -e "\t - Update local pastebin archive"
+	exit 0
+}
+
+if [ "$1" == "pastebins" ]
+then
+	getAllPastebins
+elif [ "$1" == "irc" ]
+then
+	updateIRC
+else
+	usage	
+fi
