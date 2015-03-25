@@ -1,0 +1,9 @@
+function updateIRCLogTimestamp {
+	echo "Updating IRC Log timestamps as dated..."
+	for file in `ls archive`		
+	{
+		echo -e "\t - $file"
+		time=`echo "$file" | sed "s/.txt$//g;s/-//g"`"0000"
+		touch -c -t "$time" "archive/$file" >/dev/null 2>&1
+	}	
+}

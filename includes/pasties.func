@@ -1,0 +1,123 @@
+pasties="pastebin piratepad opensuse"
+
+for paste in $pasties
+{
+	mkdir -p pasties/$paste
+}
+
+function genRawLinkFormat {
+	linkType="$1"
+	linkFile="$2"
+	
+	case "$linkType" in
+		"piratepad")
+			while read entry
+			do
+				params=(`echo "$entry"`)
+				timeStamp=${params[0]}
+				link=${params[1]}
+				echo "$link" | awk -F'/' -v timeStamp="$timeStamp" '{print "http://piratepad.net/ep/pad/export/"$(NF-1)"/"$NF"?format=txt/"timeStamp"_"$(NF-1)"_"$NF}'
+			done < $linkFile
+			;;
+		"pastebin")
+			while read entry
+			do
+				params=(`echo "$entry"`)
+				timeStamp=${params[0]}
+				link=${params[1]}
+				echo "$link" | awk -F'/' -v timeStamp="$timeStamp" '{print $1"//"$3"/raw.php?i="$4"/"timeStamp"_"$4}'
+			done < $linkFile
+			;;
+		"opensuse")
+			while read entry
+			do
+				params=(`echo "$entry"`)
+				timeStamp=${params[0]}
+				link=${params[1]}
+				echo "$link" | awk -F'/' -v timeStamp="$timeStamp" '{print "http://paste.opensuse.org/view/raw/"$NF"/"timeStamp"_"$NF}'
+			done < $linkFile
+	esac
+}
+
+
+function getLink {
+	echo "$1" | sed "s~/[^/ ]*$~~g"
+}
+
+function getTag {
+	echo "$1" | awk -F'/' '{print $NF}'
+}
+
+function fetchPasteInBulk {
+	type="$1"
+	linkFile="$2"
+
+	genRawLinkFormat "$type" "$linkFile" > pasties/${type}/download
+
+	while read line 
+	do
+		rawLink=`getLink "$line"`
+		tag=`getTag "$line"`
+
+		file="pasties/$type/$tag"
+
+		if [ ! -e "$file" ]
+		then
+			curl -s -o "$file" "$rawLink"
+			if [ -e "$file" -a $? -eq 0 ]
+			then
+				echo -e "\t - $tag"
+			fi
+		fi
+	done < pasties/${type}/download
+	rm -f pasties/${type}/download
+	#touch "pasties/$1/timestamp"
+}
+
+function fetchNewerLinks {
+	type="$1"
+	if [ -e pasties/$type/timestamp ]
+	then
+		echo "Fetching '$type' pasties using irc-logs newer than : "`stat -F pasties/$type/timestamp | awk '{print $6" "$7}'`
+		find archive/ -type f -newer pasties/$type/timestamp > pasties/${type}/newer
+		while read newer
+		do
+			case "$type" in
+				pastebin)
+					fgrep 'http://pastebin' "$newer" | sed 's~^\([^\ *]*\)\ .*<a href="\(http://pastebin.[^"]*\).*~\1 \2~g' > pasties/${type}/newerLinks
+					;;
+				piratepad)
+					fgrep 'http://piratepad.net' "$newer" | sed 's~^\([^\ *]*\)\ .*<a href="\(http://piratepad.net[^"]*\).*~\1 \2~g' > pasties/${type}/newerLinks
+					;;
+				opensuse)
+					fgrep 'http://paste.opensuse.org' "$newer" | sed 's~^\([^\ *]*\)\ .*<a href="\(http://paste.opensuse.org.[^"]*\).*~\1 \2~g' > pasties/${type}/newerLinks
+					;;
+
+			esac
+			fetchPasteInBulk "$type" "pasties/${type}/newerLinks"
+			touch -r "$newer" pasties/$type/timestamp
+		done < pasties/${type}/newer
+		rm -f pasties/${type}/newer{,Links}
+	else
+		echo "Fetching '$type' pasties using all irc-logs"
+		for ircFile in `ls archive`
+		{
+			case "$type" in
+				pastebin)
+					fgrep 'http://pastebin' "archive/$ircFile" | sed 's~^\([^\ *]*\)\ .*<a href="\(http://pastebin.[^"]*\).*~\1 \2~g' > pasties/${type}/newerLinks
+					;;
+				piratepad)
+					fgrep 'http://piratepad.net' "archive/$ircFile" | sed 's~^\([^\ *]*\)\ .*<a href="\(http://piratepad.net[^"]*\).*~\1 \2~g' > pasties/${type}/newerLinks
+					;;
+				opensuse)
+					fgrep 'http://paste.opensuse.org' "archive/$ircFile" | sed 's~^\([^\ *]*\)\ .*<a href="\(http://paste.opensuse.org[^"]*\).*~\1 \2~g' > pasties/${type}/newerLinks
+					;;
+
+			esac
+			fetchPasteInBulk "$type" "pasties/${type}/newerLinks"
+			touch -r "archive/$ircFile" pasties/$type/timestamp
+		}
+		rm -f pasties/${type}/newerLinks
+	fi
+
+}
