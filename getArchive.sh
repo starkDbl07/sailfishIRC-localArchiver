@@ -66,7 +66,13 @@ then
 	then
 		usage
 	fi
-	fetchNewerLinks $2
+	case "$2" in
+		"pastebin"|"piratebay"|"opensuse")
+			fetchNewerLinks $2
+			;;
+		*)
+			usage
+	esac
 elif [ "$1" == "irc" ]
 then
 	updateIRC
